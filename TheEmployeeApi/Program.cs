@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using TheEmployeeApi;
 using TheEmployeeApi.Abstractions;
@@ -62,7 +63,7 @@ employeeRoute.MapPost(string.Empty, (CreateEmployeeRequest employeeRequest, IRep
     var newEmployee = new Employee {
         FirstName = employeeRequest.FirstName!,
         LastName = employeeRequest.LastName!,
-        SocialSecurityNumber = employeeRequest.SocialSecurityNumber,
+        NationalInsuranceNumber = employeeRequest.NationalInsuranceNumber,
         Address1 = employeeRequest.Address1,
         Address2 = employeeRequest.Address2,
         City = employeeRequest.City,

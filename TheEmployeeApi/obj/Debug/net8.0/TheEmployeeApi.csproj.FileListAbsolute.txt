@@ -31,3 +31,4 @@
 /Users/harryrobinson/RiderProjects/TheEmployeeApi/TheEmployeeApi/obj/Debug/net8.0/TheEmployeeApi.pdb
 /Users/harryrobinson/RiderProjects/TheEmployeeApi/TheEmployeeApi/obj/Debug/net8.0/TheEmployeeApi.genruntimeconfig.cache
 /Users/harryrobinson/RiderProjects/TheEmployeeApi/TheEmployeeApi/obj/Debug/net8.0/ref/TheEmployeeApi.dll
+/Users/harryrobinson/RiderProjects/TheEmployeeApi/TheEmployeeApi/obj/Debug/net8.0/TheEmployeeApi.sourcelink.json

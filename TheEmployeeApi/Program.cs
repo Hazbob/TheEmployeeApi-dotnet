@@ -16,7 +16,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
-var employeeRoute = app.MapGroup("/employee");
+var employeeRoute = app.MapGroup("/employees");
 employeeRoute.MapGet(string.Empty, () =>
 {
     return Results.Ok(employees);
@@ -46,3 +46,5 @@ app.UseHttpsRedirection();
 
 
 app.Run();
+
+public partial class Program {}

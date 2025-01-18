@@ -1,38 +1,97 @@
 using Microsoft.AspNetCore.Mvc;
 using TheEmployeeApi;
+using TheEmployeeApi.Abstractions;
+using TheEmployeeApi.Employees;
 
 var builder = WebApplication.CreateBuilder(args);
-
-var employees = new List<Employee>
-{
-    new Employee{ Id = 1, FirstName = "John", LastName = "Doe"},
-    new Employee{ Id = 2, FirstName = "Jane", LastName = "Doe" }
-};
 
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddProblemDetails();
+
+builder.Services.AddSingleton<IRepository<Employee>, EmployeeRepository>();
 
 var app = builder.Build();
 var employeeRoute = app.MapGroup("/employees");
-employeeRoute.MapGet(string.Empty, () =>
-{
-    return Results.Ok(employees);
+
+employeeRoute.MapGet(string.Empty, (IRepository<Employee> repository) => {
+    return Results.Ok(repository.GetAll().Select(employee => new GetEmployeeResponse {
+        FirstName = employee.FirstName,
+        LastName = employee.LastName,
+        Address1 = employee.Address1,
+        Address2 = employee.Address2,
+        City = employee.City,
+        County = employee.County,
+        PostCode = employee.PostCode,
+        PhoneNumber = employee.PhoneNumber,
+        Email = employee.Email
+    }));
 });
 
-employeeRoute.MapGet("{id:int}", ([FromRoute] int id) =>
-{
-    var employee = employees.SingleOrDefault(e => e.Id == id);
-    return employee is not null ? Results.Ok(employee) : Results.NotFound();
+employeeRoute.MapGet("{id:int}", (int id, IRepository<Employee> repository) => {
+    var employee = repository.GetById(id);
+    if (employee == null)
+    {
+        return Results.NotFound();
+    }
+
+    return Results.Ok(new GetEmployeeResponse {
+        FirstName = employee.FirstName,
+        LastName = employee.LastName,
+        Address1 = employee.Address1,
+        Address2 = employee.Address2,
+        City = employee.City,
+        County = employee.County,
+        PostCode = employee.PostCode,
+        PhoneNumber = employee.PhoneNumber,
+        Email = employee.Email
+    });
 });
 
-employeeRoute.MapPost(string.Empty, ([FromBody] Employee employee) =>
-{
-    employee.Id = employees.Max(e => e.Id) + 1;
-    employees.Add(employee);
-    return Results.Created($"/employees/{employee.Id}", employee);
+employeeRoute.MapPost(string.Empty, (CreateEmployeeRequest employeeRequest, IRepository<Employee> repository) => {
+    var validationProblems = new List<ValidationResult>();
+    var isValid = Validator.TryValidateObject(employeeRequest, new ValidationContext(employeeRequest), validationProblems, true);
+    if (!isValid)
+    {
+        return Results.BadRequest(validationProblems);
+    }
+
+    var newEmployee = new Employee {
+        FirstName = employeeRequest.FirstName!,
+        LastName = employeeRequest.LastName!,
+        SocialSecurityNumber = employeeRequest.SocialSecurityNumber,
+        Address1 = employeeRequest.Address1,
+        Address2 = employeeRequest.Address2,
+        City = employeeRequest.City,
+        County = employeeRequest.County,
+        PostCode = employeeRequest.PostCode,
+        PhoneNumber = employeeRequest.PhoneNumber,
+        Email = employeeRequest.Email
+    };
+    repository.Create(newEmployee);
+    return Results.Created($"/employees/{newEmployee.Id}", employeeRequest);
+});
+
+employeeRoute.MapPut("{id}", (UpdateEmployeeRequest employeeRequest, int id, IRepository<Employee> repository) => {
+    var existingEmployee = repository.GetById(id);
+    if (existingEmployee == null)
+    {
+        return Results.NotFound();
+    }
+
+    existingEmployee.Address1 = employeeRequest.Address1;
+    existingEmployee.Address2 = employeeRequest.Address2;
+    existingEmployee.City = employeeRequest.City;
+    existingEmployee.County = employeeRequest.County;
+    existingEmployee.County = employeeRequest.PostCode;
+    existingEmployee.PhoneNumber = employeeRequest.PhoneNumber;
+    existingEmployee.Email = employeeRequest.Email;
+
+    repository.Update(existingEmployee);
+    return Results.Ok(existingEmployee);
 });
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
